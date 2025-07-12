@@ -1,6 +1,6 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useState } from "react";
-import { Clipboard, Check, X } from "lucide-react";
+import { Clipboard, Check, X, ArrowBigUp } from "lucide-react";
 
 type PromptModalProps = {
   isOpen: boolean;
@@ -8,6 +8,7 @@ type PromptModalProps = {
   prompt: {
     _id: string;
     userId: string;
+    author: string;
     title: string;
     content: string;
     tags?: string[];
@@ -20,6 +21,8 @@ type PromptModalProps = {
 
 export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProps) {
   const [copied, setCopied] = useState(false);
+  const [upvoted, setUpvoted] = useState(false);
+  const [currentUpvotes, setCurrentUpvotes] = useState(prompt?.upvotes || 0);
 
   if (!prompt) return null;
 
@@ -27,6 +30,27 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
     navigator.clipboard.writeText(prompt.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const toggleUpvote = async () => {
+    const action = upvoted ? "remove" : "upvote";
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/prompts/${prompt._id}/upvote`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentUpvotes(data.upvotes);
+        setUpvoted(!upvoted);
+      }
+    } catch (err) {
+      console.error("Upvote toggle failed", err);
+    }
   };
 
   return (
@@ -85,7 +109,7 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
             <div className="w-[30%] p-6 flex flex-col justify-between overflow-y-auto">
               <div className="space-y-3 text-sm text-gray-700">
                 <div>
-                  <span className="font-semibold">Author:</span> {prompt.userId}
+                  <span className="font-semibold">Author:</span> {prompt.author}
                 </div>
                 <div>
                   <span className="font-semibold">Posted:</span>{" "}
@@ -120,9 +144,16 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
               </div>
 
               {/* Upvote Display */}
-              <div className="mt-8 text-center border-t pt-4 text-sm text-gray-500">
-                <strong className="text-purple-600">{prompt.upvotes || 0}</strong>{" "}
-                upvotes
+              {/* Upvote Display & Button */}
+              <div className="mt-8 flex items-center justify-center gap-2 border-t pt-4 text-sm text-gray-600">
+                <button onClick={toggleUpvote}>
+                  <ArrowBigUp
+                    className={`w-7 h-7 transition-colors duration-150 ${
+                      upvoted ? "fill-black text-black" : "text-gray-400"
+                    }`}
+                  />
+                </button>
+                <span className="text-lg text-gray-900">{currentUpvotes}</span>
               </div>
             </div>
           </Dialog.Panel>

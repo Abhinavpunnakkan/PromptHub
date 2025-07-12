@@ -61,34 +61,48 @@ export function PromptForm() {
     setStatus(null);
 
     try {
-      const res = await fetch("http://localhost:5000/api/prompts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          title,
-          content,
-          tags: [category, ...modelsList],
-          isPublic,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Submission failed");
-
-      handleCancel();
-      setStatus("Prompt submitted!");
-    } catch (err) {
-      console.error(err);
-      setStatus("Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
+  const payload = {
+    userId: user.id,
+    author:
+      user.fullName?.trim() ||
+      user.primaryEmailAddress?.emailAddress?.trim() ||
+      user.id,
+    title: title.trim(),
+    content: content.trim(),
+    category: category.trim(),
+    models: modelsList.map((m) => m.trim()),
+    tags: [category, ...modelsList].map((t) => t.trim()),
+    isPublic,
   };
+
+  console.log("Submitting payload:", payload);
+
+  const res = await fetch("http://localhost:5000/api/prompts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error("Submission failed");
+
+  handleCancel();
+  setStatus("Prompt submitted!");
+} catch (err) {
+  console.error(err);
+  setStatus("Something went wrong.");
+} finally {
+  setLoading(false);
+  }
+}
+
 
   // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setShowCategoryDropdown(false);
       }
     }
@@ -112,24 +126,32 @@ export function PromptForm() {
       <div className="max-w-2xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Prompt</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Create New Prompt
+          </h1>
           <p className="text-gray-600">
-            Design and share your powerful AI prompts with the community or keep them private.
+            Design and share your powerful AI prompts with the community or keep
+            them private.
           </p>
         </div>
 
         <div className="space-y-8">
           {/* Prompt Details */}
           <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Prompt Details</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Prompt Details
+            </h2>
             <p className="text-sm text-gray-600 mb-6">
-              Provide a clear title and categorize your prompt for better discoverability.
+              Provide a clear title and categorize your prompt for better
+              discoverability.
             </p>
 
             <div className="space-y-6">
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Prompt Title</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Prompt Title
+                </label>
                 <input
                   type="text"
                   value={title}
@@ -145,14 +167,20 @@ export function PromptForm() {
 
               {/* Category */}
               <div ref={dropdownRef}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category
+                </label>
                 <div className="relative">
                   <button
                     type="button"
-                    onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                    onClick={() =>
+                      setShowCategoryDropdown(!showCategoryDropdown)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-left flex items-center justify-between"
                   >
-                    <span className={category ? "text-gray-900" : "text-gray-500"}>
+                    <span
+                      className={category ? "text-gray-900" : "text-gray-500"}
+                    >
                       {category || "Select a category"}
                     </span>
                     <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -180,7 +208,9 @@ export function PromptForm() {
 
               {/* Target AI Models */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Target AI Models</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Target AI Models
+                </label>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
@@ -226,13 +256,18 @@ export function PromptForm() {
 
           {/* Prompt Content */}
           <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Prompt Content</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Prompt Content
+            </h2>
             <p className="text-sm text-gray-600 mb-6">
-              Craft the core of your prompt. Be as detailed and specific as possible.
+              Craft the core of your prompt. Be as detailed and specific as
+              possible.
             </p>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Your Prompt</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Your Prompt
+              </label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
@@ -249,12 +284,18 @@ export function PromptForm() {
 
           {/* Visibility */}
           <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Settings & Visibility</h2>
-            <p className="text-sm text-gray-600 mb-6">Control who can see and use your prompt.</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Settings & Visibility
+            </h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Control who can see and use your prompt.
+            </p>
 
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-gray-700">Make Prompt Public</h3>
+                <h3 className="text-sm font-medium text-gray-700">
+                  Make Prompt Public
+                </h3>
                 <p className="text-xs text-gray-500">
                   Your prompt will be visible to everyone on PromptHub.
                 </p>
@@ -296,7 +337,13 @@ export function PromptForm() {
 
           {status && (
             <div className="text-center">
-              <p className={`text-sm ${status.includes("Something") ? "text-red-600" : "text-green-600"}`}>
+              <p
+                className={`text-sm ${
+                  status.includes("Something")
+                    ? "text-red-600"
+                    : "text-green-600"
+                }`}
+              >
                 {status}
               </p>
             </div>
