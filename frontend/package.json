@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.32.4",
+    "@headlessui/react": "^2.2.4",
     "@tailwindcss/vite": "^4.1.11",
     "dotenv": "^17.0.1",
     "lucide-react": "^0.525.0",

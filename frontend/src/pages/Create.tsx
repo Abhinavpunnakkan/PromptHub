@@ -1,5 +1,6 @@
 import { SignedIn, SignedOut, SignIn } from "@clerk/clerk-react";
 import { PromptForm } from "../components/PromptForm";
+import { Link } from "react-router-dom";
 
 export default function Create() {
   return (
@@ -10,7 +11,15 @@ export default function Create() {
 
       <SignedOut>
         <div className="max-w-md mx-auto mt-10">
-          <SignIn />
+          <div className="text-center text-gray-700">
+            <p>
+  You need to{" "}
+  <Link to="/sign-in?redirect=/create" className="font-semibold underline text-purple-600">
+  sign in
+</Link>{" "}
+  to create a prompt.
+</p>
+          </div>
         </div>
       </SignedOut>
     </div>

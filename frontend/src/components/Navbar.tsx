@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useUser, SignOutButton, SignInButton } from "@clerk/clerk-react";
 import { Search, User } from "lucide-react";
-import { SignOutButton } from "@clerk/clerk-react";
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -9,6 +9,7 @@ const Navbar = () => {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
+  const { isSignedIn } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -28,17 +29,6 @@ const Navbar = () => {
     console.log(`Searching for: ${searchQuery}`);
   };
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-    setIsMobileSearchOpen(false);
-  };
-
-  const toggleMobileSearch = () => {
-    setIsMobileSearchOpen(!isMobileSearchOpen);
-    setIsMobileMenuOpen(false);
-  };
-
-  // Close profile dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -62,7 +52,7 @@ const Navbar = () => {
             <span className="text-xl font-semibold text-gray-900">PromptHub</span>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-8">
             {navigationItems.map((item) => (
               <button
@@ -79,9 +69,9 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Desktop Search + Profile Dropdown */}
+          {/* Search + Auth */}
           <div className="hidden md:flex items-center space-x-4 relative profile-dropdown">
-            {/* Search */}
+            {/* Search Bar */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -94,110 +84,47 @@ const Navbar = () => {
               />
             </div>
 
-            {/* Profile Avatar + Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setIsProfileDropdownOpen((prev) => !prev)}
-                className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors"
-              >
-                <User className="w-5 h-5 text-white" />
-              </button>
-
-              {isProfileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-md z-50">
-                  <button
-                    onClick={() => {
-                      navigate("/profile");
-                      setIsProfileDropdownOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                  >
-                    Edit Profile
-                  </button>
-                  <SignOutButton>
-                    <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-600">
-                      Sign Out
-                    </button>
-                  </SignOutButton>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Mobile Controls */}
-          <div className="md:hidden flex items-center space-x-3">
-            <button
-              onClick={toggleMobileSearch}
-              className="text-gray-700 hover:text-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 p-2"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={toggleMobileMenu}
-              className="text-gray-700 hover:text-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 p-2"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Search */}
-        {isMobileSearchOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
-                placeholder="Search for prompts..."
-                className="pl-10 pr-4 py-2 w-full text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                autoFocus
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
-            <div className="flex flex-col space-y-3">
-              {navigationItems.map((item) => (
+            {/* Auth Dropdown */}
+            {isSignedIn ? (
+              <div className="relative">
                 <button
-                  key={item.label}
-                  onClick={() => handleNavigation(item.path)}
-                  className={`text-left px-3 py-2 text-sm font-medium transition-colors duration-200 ${
-                    location.pathname === item.path
-                      ? "text-purple-600 bg-purple-50"
-                      : "text-gray-700 hover:text-purple-600 hover:bg-gray-50"
-                  }`}
+                  onClick={() => setIsProfileDropdownOpen((prev) => !prev)}
+                  className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors"
                 >
-                  {item.label}
+                  <User className="w-5 h-5 text-white" />
                 </button>
-              ))}
 
-              <button
-                onClick={() => {
-                  navigate("/profile");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="text-left px-3 py-2 text-sm text-gray-700 hover:text-purple-600 hover:bg-gray-50"
-              >
-                Edit Profile
-              </button>
-
-              <SignOutButton>
-                <button className="text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100">
-                  Sign Out
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-md z-50">
+                    <button
+                      onClick={() => {
+                        navigate("/profile");
+                        setIsProfileDropdownOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Edit Profile
+                    </button>
+                    <SignOutButton>
+                      <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-600">
+                        Sign Out
+                      </button>
+                    </SignOutButton>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <SignInButton>
+                <button className="text-sm px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition">
+                  Sign In
                 </button>
-              </SignOutButton>
-            </div>
+              </SignInButton>
+            )}
           </div>
-        )}
+
+          {/* Mobile controls (optional) */}
+          {/* You can update this part later if needed */}
+        </div>
       </div>
     </nav>
   );
