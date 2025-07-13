@@ -3,6 +3,8 @@ import Home from "./pages/Home";
 import Create from "./pages/Create";
 import Navbar from "./components/Navbar";
 import SignInPage from "./pages/SignInPage";
+import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
           path="*"
           element={<div className="text-center mt-20 text-gray-500">404 – Page Not Found</div>}
         />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
       </Routes>
     </>
   );

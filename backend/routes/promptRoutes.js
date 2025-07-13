@@ -3,6 +3,30 @@ import Prompt from '../models/Prompt.js';
 
 const router = express.Router();
 
+// DELETE a prompt
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  try {
+    const prompt = await Prompt.findById(id);
+
+    if (!prompt) {
+      return res.status(404).json({ message: 'Prompt not found' });
+    }
+
+    if (prompt.userId !== userId) {
+      return res.status(403).json({ message: 'Unauthorized to delete this prompt' });
+    }
+
+    await prompt.deleteOne();
+    res.json({ message: 'Prompt deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error deleting prompt' });
+  }
+});
+
 // GET /api/prompts
 router.get('/', async (req, res) => {
   try {
