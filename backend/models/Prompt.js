@@ -10,6 +10,7 @@ const promptSchema = new mongoose.Schema({
   models: [{ type: String }],
   isPublic: { type: Boolean, default: true },
   upvotes: { type: Number, default: 0 },
+  views: { type: Number, default: 0},
   createdAt: { type: Date, default: Date.now },
 });
 

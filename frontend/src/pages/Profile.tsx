@@ -1,119 +1,116 @@
-import { useUser } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
+import { Pencil, UserCircle } from "lucide-react";
 
 type Prompt = {
   _id: string;
-  userId: string;
-  author: string;
   title: string;
   content: string;
-  tags?: string[];
-  category?: string;
-  models?: string[];
   createdAt: string;
   isPublic: boolean;
-  upvotes?: number;
+  // Add more if needed
 };
 
 export default function Profile() {
-  const { user, isSignedIn, isLoaded } = useUser();
+  const { user, isLoaded } = useUser();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [filter, setFilter] = useState<"all" | "private">("all");
-
-  const fetchMyPrompts = async () => {
-    if (!user?.id) return;
-
-    try {
-      const res = await fetch(`http://localhost:5000/api/prompts/user/${user.id}`);
-      const data = await res.json();
-      setPrompts(data);
-    } catch (err) {
-      console.error("Failed to fetch your prompts", err);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!user?.id) return;
-
-    const confirmed = window.confirm("Are you sure you want to delete this prompt?");
-    if (!confirmed) return;
-
-    try {
-      const res = await fetch(`http://localhost:5000/api/prompts/${id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id }),
-      });
-
-      if (!res.ok) throw new Error("Delete failed");
-
-      setPrompts((prev) => prev.filter((p) => p._id !== id));
-    } catch (err) {
-      console.error("Failed to delete prompt", err);
-    }
-  };
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"all" | "public" | "private" | "liked">("all");
 
   useEffect(() => {
-    if (isSignedIn) fetchMyPrompts();
-  }, [isSignedIn]);
+    if (!isLoaded || !user) return;
 
-  if (!isLoaded) return null;
+    const fetchUserPrompts = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/prompts?userId=${user.id}&filter=private`);
+        const data = await res.json();
+        setPrompts(data);
+      } catch (err) {
+        console.error("Failed to fetch user prompts:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filtered = filter === "private" ? prompts.filter((p) => !p.isPublic) : prompts;
+    fetchUserPrompts();
+  }, [isLoaded, user]);
+
+  const filteredPrompts = prompts.filter((prompt) => {
+    if (filter === "public") return prompt.isPublic;
+    if (filter === "private") return !prompt.isPublic;
+    // For liked, use a separate liked list once implemented
+    return true;
+  });
+
+  if (!isLoaded || !user) return null;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-semibold mb-6 text-center">My Prompts</h1>
+    <div className="max-w-4xl mx-auto py-10 px-4 space-y-6">
+      {/* Profile Header */}
+      <div className="flex items-center gap-4">
+        {user.imageUrl ? (
+          <img
+            src={user.imageUrl}
+            alt="Profile"
+            className="w-14 h-14 rounded-full object-cover"
+          />
+        ) : (
+          <UserCircle className="w-14 h-14 text-gray-400" />
+        )}
 
-      {/* Filter Tabs */}
-      <div className="flex justify-center gap-4 mb-8">
-        <button
-          className={`px-4 py-2 rounded-full border ${
-            filter === "all" ? "bg-black text-white" : "border-gray-300 text-gray-700"
-          }`}
-          onClick={() => setFilter("all")}
-        >
-          All
-        </button>
-        <button
-          className={`px-4 py-2 rounded-full border ${
-            filter === "private" ? "bg-black text-white" : "border-gray-300 text-gray-700"
-          }`}
-          onClick={() => setFilter("private")}
-        >
-          Private Only
-        </button>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold text-gray-800">
+              {user.fullName || user.username || "Unnamed"}
+            </h1>
+            <button className="text-gray-500 hover:text-gray-700">
+              <Pencil className="w-4 h-4" />
+            </button>
+          </div>
+          <p className="text-sm text-gray-600">{user.primaryEmailAddress?.emailAddress}</p>
+          {/* You can later show username here */}
+        </div>
       </div>
 
-      {/* Prompt Cards */}
-      {filtered.length === 0 ? (
-        <p className="text-center text-gray-500">No prompts found.</p>
-      ) : (
-        <div className="space-y-6">
-          {filtered.map((prompt) => (
-            <div
-              key={prompt._id}
-              className="bg-white border border-gray-200 p-4 rounded-md shadow-sm relative"
-            >
-              <h2 className="text-lg font-semibold text-gray-900">{prompt.title}</h2>
-              <p className="text-gray-700 text-sm mt-1 whitespace-pre-line line-clamp-4">
-                {prompt.content}
-              </p>
+      {/* Navigation Tabs */}
+      <div className="flex gap-3 flex-wrap mt-6">
+        {["all", "public", "private", "liked"].map((key) => (
+          <button
+            key={key}
+            onClick={() => setFilter(key as typeof filter)}
+            className={`px-4 py-1 text-sm font-medium rounded-full transition ${
+              filter === key
+                ? "bg-purple-600 text-white"
+                : "text-gray-700 hover:text-purple-600"
+            }`}
+          >
+            {key.charAt(0).toUpperCase() + key.slice(1)}
+          </button>
+        ))}
+      </div>
 
-              <div className="text-xs text-gray-500 mt-3 flex justify-between items-center">
-                <span>{prompt.isPublic ? "Public" : "Private"} • {new Date(prompt.createdAt).toLocaleDateString()}</span>
-                <button
-                  onClick={() => handleDelete(prompt._id)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <Trash2 size={16} />
-                </button>
+      {/* Prompts Section */}
+      <div>
+        {loading ? (
+          <p className="text-gray-500">Loading your prompts...</p>
+        ) : filteredPrompts.length === 0 ? (
+          <p className="text-gray-500">No prompts found under this category.</p>
+        ) : (
+          <div className="space-y-4 mt-4">
+            {filteredPrompts.map((prompt) => (
+              <div
+                key={prompt._id}
+                className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm"
+              >
+                <h3 className="font-semibold text-lg text-gray-900">{prompt.title}</h3>
+                <p className="text-sm text-gray-700 line-clamp-3 whitespace-pre-wrap mt-1">
+                  {prompt.content}
+                </p>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

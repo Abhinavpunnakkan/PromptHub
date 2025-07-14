@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import PromptModal from "./PromptModal";
-import { ArrowBigUp } from "lucide-react";
+import { ArrowBigUp, Eye } from "lucide-react";
 
 type Prompt = {
   _id: string;
@@ -10,7 +10,15 @@ type Prompt = {
   content: string;
   createdAt: string;
   upvotes?: number;
+  views?: number;
 };
+
+function formatViews(views: number = 0): string {
+  if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`;
+  if (views >= 100_000) return `${Math.floor(views / 1000)}K`;
+  if (views >= 1_000) return `${(views / 1000).toFixed(1)}K`;
+  return views.toString();
+}
 
 export function PromptFeed() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -54,10 +62,28 @@ export function PromptFeed() {
     });
   };
 
+  const handlePromptOpen = async (prompt: Prompt) => {
+    setSelectedPrompt(prompt);
+
+    try {
+      await fetch(`http://localhost:5000/api/prompts/${prompt._id}/view`, {
+        method: "POST",
+      });
+
+      setPrompts((prev) =>
+        prev.map((p) =>
+          p._id === prompt._id
+            ? { ...p, views: (p.views || 0) + 1 }
+            : p
+        )
+      );
+    } catch (err) {
+      console.error("Failed to increment view:", err);
+    }
+  };
+
   if (loading)
-    return (
-      <p className="text-center mt-10 text-gray-600">Loading prompts...</p>
-    );
+    return <p className="text-center mt-10 text-gray-600">Loading prompts...</p>;
 
   return (
     <div className="max-w-2xl mx-auto mt-10 space-y-6">
@@ -66,9 +92,7 @@ export function PromptFeed() {
           key={prompt._id}
           className="p-5 rounded-xl shadow-sm bg-white border border-gray-200 space-y-2"
         >
-          <h3 className="text-md font-semibold text-gray-900">
-            {prompt.title}
-          </h3>
+          <h3 className="text-md font-semibold text-gray-900">{prompt.title}</h3>
           <p className="text-sm text-gray-700 line-clamp-3 whitespace-pre-line break-words">
             {prompt.content}
           </p>
@@ -78,27 +102,34 @@ export function PromptFeed() {
 
           <div className="flex justify-between items-center pt-2">
             <button
-              onClick={() => setSelectedPrompt(prompt)}
+              onClick={() => handlePromptOpen(prompt)}
               className="text-sm text-purple-600 hover:underline"
             >
               View Full Prompt →
             </button>
-            <button
-              onClick={() => toggleUpvote(prompt._id)}
-              className={`flex items-center gap-1 text-sm ${
-                upvotedIds.has(prompt._id) ? "text-black" : "text-gray-400"
-              }`}
-            >
-              <ArrowBigUp
-                className={`w-6 h-6 transition-colors duration-150 ${
-                  upvotedIds.has(prompt._id)
-                    ? "fill-black text-black"
-                    : "text-gray-400"
-                }`}
-              />
 
-              {prompt.upvotes || 0}
-            </button>
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1 text-gray-400 text-sm">
+                <Eye className="w-5 h-5" />
+                {formatViews(prompt.views)}
+              </span>
+
+              <button
+                onClick={() => toggleUpvote(prompt._id)}
+                className={`flex items-center gap-1 text-sm ${
+                  upvotedIds.has(prompt._id) ? "text-black" : "text-gray-400"
+                }`}
+              >
+                <ArrowBigUp
+                  className={`w-6 h-6 transition-colors duration-150 ${
+                    upvotedIds.has(prompt._id)
+                      ? "fill-black text-black"
+                      : "text-gray-400"
+                  }`}
+                />
+                {prompt.upvotes || 0}
+              </button>
+            </div>
           </div>
         </div>
       ))}
