@@ -1,19 +1,42 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  useUser,
-  SignOutButton,
-  SignInButton,
-} from "@clerk/clerk-react";
+import { useUser, SignOutButton, SignInButton } from "@clerk/clerk-react";
 import { Search, User, Menu } from "lucide-react";
+import { debounce } from "lodash";
+import { useCallback } from "react";
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [showSearchTips, setShowSearchTips] = useState(false);
   const { isSignedIn, user } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const debouncedSearch = useCallback(
+    debounce((query: string) => {
+      navigate(`/?search=${encodeURIComponent(query.trim())}`);
+    }, 500),
+    []
+  );
+
+  const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setShowSearchTips(value.trim() === "");
+    debouncedSearch(value);
+  };
+
+  const handleSearchSubmit = () => {
+    navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearchSubmit();
+    }
+  };
 
   const navigationItems = [
     { label: "Home", path: "/" },
@@ -51,11 +74,13 @@ const Navbar = () => {
             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-sm">P</span>
             </div>
-            <span className="text-xl font-semibold text-gray-900">PromptHub</span>
+            <span className="text-xl font-semibold text-gray-900">
+              PromptHub
+            </span>
           </div>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* <div className="hidden md:flex items-center space-x-8">
             {navigationItems.map((item) => (
               <button
                 key={item.label}
@@ -69,22 +94,47 @@ const Navbar = () => {
                 {item.label}
               </button>
             ))}
-          </div>
+          </div> */}
 
           {/* Search + Auth - Desktop */}
           <div className="hidden md:flex items-center space-x-4 relative profile-dropdown">
-            {/* Search */}
+            {/* Search
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
+                placeholder="Search prompts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
-                placeholder="Search prompts..."
-                className="pl-10 pr-4 py-2 w-64 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                onFocus={() => setShowSearchTips(true)}
+                onKeyDown={handleKeyPress}
+                className="pl-8 pr-10 py-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 w-64"
               />
-            </div>
+              <button
+                onClick={handleSearchSubmit}
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-purple-600 hover:text-purple-800"
+                title="Search"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+
+              {showSearchTips && (
+                <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 shadow-md rounded-md z-50 text-sm p-3 space-y-1 text-gray-600">
+                  <p>
+                    <strong>[tag]</strong> – Search within a tag
+                  </p>
+                  <p>
+                    <strong>user:1234</strong> – Search by author
+                  </p>
+                  <p>
+                    <strong>"exact phrase"</strong> – Exact match
+                  </p>
+                  <p>
+                    <strong>collective:"Name"</strong> – Search by collection
+                  </p>
+                </div>
+              )}
+            </div> */}
 
             {/* Profile Dropdown */}
             {isSignedIn ? (
@@ -93,7 +143,11 @@ const Navbar = () => {
                   onClick={() => setIsProfileDropdownOpen((prev) => !prev)}
                   className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors"
                 >
-                  <User className="w-5 h-5 text-white" />
+                  <img
+                    src={user.imageUrl}
+                    alt="Profile Pic"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
                 </button>
 
                 {isProfileDropdownOpen && (
@@ -101,10 +155,20 @@ const Navbar = () => {
                     <div className="px-4 py-2 text-sm text-gray-700">
                       Signed in as
                       <div className="font-medium">
-                        {user?.fullName || user?.primaryEmailAddress?.emailAddress}
+                        {user?.fullName ||
+                          user?.primaryEmailAddress?.emailAddress}
                       </div>
                     </div>
                     <div className="border-t border-gray-200" />
+                    <button
+                      onClick={() => {
+                        navigate("/profile");
+                        setIsProfileDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      View Profile
+                    </button>
                     <button
                       onClick={() => {
                         navigate("/edit-profile");

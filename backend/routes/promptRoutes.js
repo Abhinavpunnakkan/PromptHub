@@ -3,60 +3,63 @@ import Prompt from '../models/Prompt.js';
 
 const router = express.Router();
 
-// DELETE a prompt
-router.delete('/:id', async (req, res) => {
-  const promptId = req.params.id;
+// GET Public Prompts (Home)
 
-  try {
-    const deleted = await Prompt.findByIdAndDelete(promptId);
-    if (!deleted) {
-      return res.status(404).json({ message: 'Prompt not found' });
-    }
-    res.status(200).json({ message: 'Prompt deleted successfully' });
-  } catch (err) {
-    console.error('Error deleting prompt:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-
-// GET /api/prompts?userId=abc&filter=private|liked|saved
 router.get('/', async (req, res) => {
   try {
-    const { userId, filter } = req.query;
-
-    let query = {};
-    if (filter === 'private') {
-      query = { userId, isPublic: false };
-    } else if (filter === 'public') {
-      query = { userId, isPublic: true };
-    } else {
-      query = { userId }; // fallback to all prompts by user
-    }
-
-    const prompts = await Prompt.find(query).sort({ createdAt: -1 });
+    const prompts = await Prompt.find({ isPublic: true }).sort({ createdAt: -1 });
     res.json(prompts);
   } catch (err) {
-    console.error("Fetch profile prompts failed:", err);
+    console.error("Failed to fetch public prompts:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
 
-router.delete('/:id', async (req, res) => {
+//  GET Prompts by userId (for profile)
+//  /api/prompts/user/:userId?filter=private|public
+
+router.get('/user/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { filter } = req.query;
+
   try {
-    const prompt = await Prompt.findByIdAndDelete(req.params.id);
-    if (!prompt) {
-      return res.status(404).json({ message: 'Prompt not found' });
-    }
-    res.status(200).json({ message: 'Prompt deleted' });
+    let query = { userId };
+
+    if (filter === 'private') query.isPublic = false;
+    else if (filter === 'public') query.isPublic = true;
+
+    const prompts = await Prompt.find(query).sort({ createdAt: -1 });
+    res.json(prompts);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Failed to delete prompt' });
+    console.error("Fetch user prompts failed:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// POST /api/prompts
+//  GET Prompt by ID (increment view)
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const prompt = await Prompt.findByIdAndUpdate(
+      id,
+      { $inc: { views: 1 } },
+      { new: true }
+    );
+
+    if (!prompt) {
+      return res.status(404).json({ message: 'Prompt not found' });
+    }
+
+    res.json(prompt);
+  } catch (err) {
+    console.error('Error fetching prompt: ', err);
+    res.status(500).json({ message: 'Failed to fetch prompt' });
+  }
+});
+
+//  POST new prompt
 router.post('/', async (req, res) => {
   try {
     const {
@@ -89,28 +92,21 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const prompt = await Prompt.findByIdandUpdate(
-            id,
-            { $inc: {views: 1} },
-            { new: true }
-        );
-
-        if (!prompt) {
-            return res.status(404).json({message: 'Prompt not found'});
-        }
-
-        res.json(prompt);
-    } catch (err) {
-        console.error('Error fetching prompt: ', err);
-        res.status(500).json({ message: 'Failed to fetch prompt' });;
+//  DELETE prompt
+router.delete('/:id', async (req, res) => {
+  try {
+    const prompt = await Prompt.findByIdAndDelete(req.params.id);
+    if (!prompt) {
+      return res.status(404).json({ message: 'Prompt not found' });
     }
+    res.status(200).json({ message: 'Prompt deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to delete prompt' });
+  }
 });
 
-// PUT /api/prompts/:id/upvote
+//  PUT upvote / remove upvote
 router.put('/:id/upvote', async (req, res) => {
   try {
     const { id } = req.params;
@@ -132,6 +128,5 @@ router.put('/:id/upvote', async (req, res) => {
     res.status(500).json({ message: 'Failed to update upvotes' });
   }
 });
-
 
 export default router;

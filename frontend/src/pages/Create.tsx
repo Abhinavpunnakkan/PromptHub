@@ -1,12 +1,16 @@
 import { SignedIn, SignedOut, SignIn } from "@clerk/clerk-react";
 import { PromptForm } from "../components/PromptForm";
 import { Link } from "react-router-dom";
+import LeftPanel from "../components/LeftPanel";
 
 export default function Create() {
   return (
-    <div className="p-6">
+    <div className="flex min-h-screen">
       <SignedIn>
-        <PromptForm />
+        <LeftPanel />
+                <main className="flex-1">
+                <PromptForm />
+              </main>
       </SignedIn>
 
       <SignedOut>

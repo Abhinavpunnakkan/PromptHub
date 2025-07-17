@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import SignInPage from "./pages/SignInPage";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
+import PromptPage from "./pages/PromptPage";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         />
         <Route path="/profile" element={<Profile />} />
         <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/prompt/:id" element={<PromptPage />} />
       </Routes>
     </>
   );
