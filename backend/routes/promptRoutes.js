@@ -1,5 +1,7 @@
 import express from 'express';
 import Prompt from '../models/Prompt.js';
+import User from '../models/User.js';
+
 
 const router = express.Router();
 
@@ -128,5 +130,27 @@ router.put('/:id/upvote', async (req, res) => {
     res.status(500).json({ message: 'Failed to update upvotes' });
   }
 });
+
+// PUT /api/users/:clerkId
+router.put('/:clerkId', async (req, res) => {
+  const { clerkId } = req.params;
+  const { username } = req.body;
+
+  try {
+    const updatedUser = await User.findOneAndUpdate(
+      { clerkId },
+      { username },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    console.error("Failed to update user:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 export default router;

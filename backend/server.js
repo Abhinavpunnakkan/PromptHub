@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import promptRoutes from './routes/promptRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 dotenv.config();
 
@@ -23,6 +24,8 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Routes
 app.use('/api/prompts', promptRoutes);
+app.use("/api/users", userRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('Backend running');

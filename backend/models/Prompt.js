@@ -12,6 +12,7 @@ const promptSchema = new mongoose.Schema({
   upvotes: { type: Number, default: 0 },
   views: { type: Number, default: 0},
   createdAt: { type: Date, default: Date.now },
+  username: {type: String },
 });
 
 

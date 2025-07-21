@@ -121,7 +121,7 @@ export default function PromptFeed() {
       </h1>
       <button
         onClick={handleCreatePrompt}
-        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
+        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition cursor-pointer"
       >
         <Plus size={16} />
         Create

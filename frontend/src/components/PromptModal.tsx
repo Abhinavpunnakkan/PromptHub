@@ -9,6 +9,7 @@ import {
   Share2,
   ExternalLink,
 } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
 
 type PromptModalProps = {
   isOpen: boolean;
@@ -28,6 +29,8 @@ type PromptModalProps = {
   } | null;
 };
 
+
+
 function formatViews(n = 0) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 100_000) return `${Math.floor(n / 1_000)}K`;
@@ -35,7 +38,11 @@ function formatViews(n = 0) {
   return n.toString();
 }
 
-export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProps) {
+export default function PromptModal({
+  isOpen,
+  onClose,
+  prompt,
+}: PromptModalProps) {
   const [copied, setCopied] = useState(false);
   const [upvoted, setUpvoted] = useState(false);
   const [currentUpvotes, setCurrentUpvotes] = useState(prompt?.upvotes || 0);
@@ -52,11 +59,14 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
   const toggleUpvote = async () => {
     const action = upvoted ? "remove" : "upvote";
     try {
-      const res = await fetch(`http://localhost:5000/api/prompts/${prompt._id}/upvote`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/prompts/${prompt._id}/upvote`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        }
+      );
       if (res.ok) {
         const data = await res.json();
         setCurrentUpvotes(data.upvotes);
@@ -68,6 +78,7 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
   };
 
   const promptLink = `${window.location.origin}/prompt/${prompt._id}`;
+  const { user } = useUser();
 
   return (
     <Transition show={isOpen} as={Fragment}>
@@ -131,7 +142,8 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
                 </div>
                 {prompt.category && (
                   <div>
-                    <span className="font-semibold">Category:</span> {prompt.category}
+                    <span className="font-semibold">Category:</span>{" "}
+                    {prompt.category}
                   </div>
                 )}
                 {Array.isArray(prompt.models) && prompt.models.length > 0 && (
@@ -161,13 +173,24 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
               <div className="mt-8 space-y-4 border-t pt-4 text-sm text-gray-600">
                 {/* Upvote + Views */}
                 <div className="flex items-center justify-between">
-                  <button onClick={toggleUpvote} className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      if (!user) {
+                        alert("Please sign in to upvote");
+                        return;
+                      }
+                      toggleUpvote();
+                    }}
+                    className="flex items-center gap-2"
+                  >
                     <ArrowBigUp
                       className={`w-7 h-7 transition-colors duration-150 ${
                         upvoted ? "fill-black text-black" : "text-gray-400"
                       }`}
                     />
-                    <span className="text-lg text-gray-900">{currentUpvotes}</span>
+                    <span className="text-lg text-gray-900">
+                      {currentUpvotes}
+                    </span>
                   </button>
                   <div className="flex items-center gap-1 text-xs text-gray-500">
                     <Eye size={16} />
@@ -190,11 +213,17 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
 
         {/* 🔧 Share Modal */}
         <Transition show={shareOpen} as={Fragment}>
-          <Dialog as="div" className="relative z-50" onClose={() => setShareOpen(false)}>
+          <Dialog
+            as="div"
+            className="relative z-50"
+            onClose={() => setShareOpen(false)}
+          >
             <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
             <div className="fixed inset-0 flex items-center justify-center p-4">
               <Dialog.Panel className="bg-white max-w-sm w-full rounded-lg shadow-lg p-6 space-y-4">
-                <Dialog.Title className="text-lg font-semibold text-gray-900">Share this prompt</Dialog.Title>
+                <Dialog.Title className="text-lg font-semibold text-gray-900">
+                  Share this prompt
+                </Dialog.Title>
 
                 <div className="text-sm text-gray-700">
                   <p className="mb-2">Copy link to share:</p>
@@ -219,7 +248,9 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
 
                 <div className="flex items-center justify-between pt-2 text-sm">
                   <a
-                    href={`https://wa.me/?text=${encodeURIComponent(promptLink)}`}
+                    href={`https://wa.me/?text=${encodeURIComponent(
+                      promptLink
+                    )}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-green-600 hover:underline flex items-center gap-1"
@@ -227,7 +258,9 @@ export default function PromptModal({ isOpen, onClose, prompt }: PromptModalProp
                     <ExternalLink size={14} /> WhatsApp
                   </a>
                   <a
-                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(promptLink)}&text=Check%20out%20this%20prompt%20on%20PromptHub!`}
+                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(
+                      promptLink
+                    )}&text=Check%20out%20this%20prompt%20on%20PromptHub!`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-500 hover:underline flex items-center gap-1"
