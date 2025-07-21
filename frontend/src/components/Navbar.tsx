@@ -47,11 +47,8 @@ const Navbar = () => {
             className="flex items-center space-x-2 cursor-pointer"
             onClick={() => navigate("/")}
           >
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">P</span>
-            </div>
-            <span className="text-xl font-semibold text-gray-900">
-              PromptHub
+            <span className="text-xl font-semibold text-gray-900" onClick={() => navigate("/")}>
+              PromptBox
             </span>
           </div>
 
@@ -98,18 +95,17 @@ const Navbar = () => {
                     >
                       Edit Profile
                     </button>
-<SignOutButton>
-  <button
-    onClick={() => {
-      setIsProfileDropdownOpen(false);
-      signOut().then(() => navigate("/home"));
-    }}
-    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-  >
-    Sign Out
-  </button>
-</SignOutButton>
-
+                    <SignOutButton>
+                      <button
+                        onClick={() => {
+                          setIsProfileDropdownOpen(false);
+                          signOut().then(() => navigate("/home"));
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      >
+                        Sign Out
+                      </button>
+                    </SignOutButton>
                   </div>
                 )}
               </div>
@@ -161,18 +157,17 @@ const Navbar = () => {
                     Edit Profile
                   </button>
                   <SignOutButton>
-  <button
-    onClick={async () => {
-      setIsProfileDropdownOpen(false);
-      await signOut();
-      navigate("/home");
-    }}
-    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-  >
-    Sign Out
-  </button>
-</SignOutButton>
-
+                    <button
+                      onClick={async () => {
+                        setIsProfileDropdownOpen(false);
+                        await signOut();
+                        navigate("/home");
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    >
+                      Sign Out
+                    </button>
+                  </SignOutButton>
                 </>
               ) : (
                 <button

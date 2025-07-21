@@ -19,7 +19,6 @@ export default function Landing() {
         }`}
       >
         <h1 className="text-5xl sm:text-6xl font-extrabold text-gray-900 mb-4 leading-tight tracking-tight">
-          The future of <br />
           <span className="text-purple-600">PromptBox</span>
         </h1>
 
