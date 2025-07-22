@@ -19,7 +19,7 @@ export default function Landing() {
         }`}
       >
         <h1 className="text-5xl sm:text-6xl font-extrabold text-gray-900 mb-4 leading-tight tracking-tight">
-          <span className="text-purple-600">PromptBox</span>
+          <span className="text-purple-600">PromptNow</span>
         </h1>
 
         <p className="text-xl sm:text-2xl text-gray-700 mb-10 leading-relaxed">

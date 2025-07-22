@@ -48,7 +48,7 @@ const Navbar = () => {
             onClick={() => navigate("/")}
           >
             <span className="text-xl font-semibold text-gray-900" onClick={() => navigate("/")}>
-              PromptBox
+              PromptNow
             </span>
           </div>
 
