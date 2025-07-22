@@ -1,4 +1,3 @@
-import { useUser } from "@clerk/clerk-react";
 import PromptFeed from "../components/PromptFeed";
 import LeftPanel from "../components/LeftPanel";
 

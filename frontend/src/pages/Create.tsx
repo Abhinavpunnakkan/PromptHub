@@ -1,4 +1,4 @@
-import { SignedIn, SignedOut, SignIn } from "@clerk/clerk-react";
+import { SignedIn, SignedOut} from "@clerk/clerk-react";
 import { PromptForm } from "../components/PromptForm";
 import { Link } from "react-router-dom";
 import LeftPanel from "../components/LeftPanel";

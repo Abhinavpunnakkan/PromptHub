@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Eye, ArrowBigUp, Plus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import LeftPanel from "./LeftPanel";
 import PromptModal from "./PromptModal";
 
 type Prompt = {
@@ -27,7 +26,7 @@ function formatViews(n = 0) {
 
 export default function PromptFeed() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [, setSearchQuery] = useState("");
   const [filteredPrompts, setFilteredPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);

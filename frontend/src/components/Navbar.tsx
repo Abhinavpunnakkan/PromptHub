@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   useUser,
   SignOutButton,
-  SignInButton,
   useClerk,
 } from "@clerk/clerk-react";
-import { Search, User, Menu } from "lucide-react";
+import {  Menu } from "lucide-react";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
